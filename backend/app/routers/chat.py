@@ -25,10 +25,12 @@ def get_db():
 def chat(message: schemas.Message, db: Session = Depends(get_db)):
     # Check if session is active
     if not utils.auth.is_session_active(message.session_id, db):
+        logger.warning(f"Session {message.session_id}: Invalid or expired session.")
         raise HTTPException(status_code=401, detail="Session expired or invalid")
     
      # Rate limiting
     if rate_limit.is_rate_limited(message.session_id, db):
+        logger.warning(f"Session {message.session_id}: Rate limit exceeded.")
         raise HTTPException(status_code=429, detail="Too many requests. Please try again later.")
 
     # Save user message
@@ -40,19 +42,25 @@ def chat(message: schemas.Message, db: Session = Depends(get_db)):
     db.add(user_message)
     db.commit()
 
-    logger.info(f"Session {message.session_id}: User message received")
+    logger.info(f"Session {message.session_id}: User message received - '{message.content}'")
 
     # Retrieve conversation history
     messages = db.query(models.Message).filter(models.Message.session_id == message.session_id).order_by(models.Message.timestamp).all()
+    logger.info(f"Session {message.session_id}: Saving user message to database.")
     conversation = [{"role": msg.role, "content": msg.content} for msg in messages]
 
     # Call OpenAI API
     try:
+        logger.info(f"Session {message.session_id}: Sending request to OpenAI API.")
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=conversation
         )
+        logger.info(f"Session {message.session_id}: Received AI response.")
+
         ai_content = response.choices[0].message.content
+        
+        logger.info(f"Session {message.session_id}: Saving AI response to database.")
 
         # Save AI response
         ai_message = models.Message(
