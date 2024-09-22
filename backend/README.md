@@ -176,7 +176,7 @@ tail -f app.log
 
 ```
 
-Notes
+### **Notes**
 - Session Expiration: Sessions expire after 30 minutes of inactivity.
 - Data Retention: Session data is retained for 6 months.
 - Rate Limiting: Users are limited to 5 messages per minute per session.
