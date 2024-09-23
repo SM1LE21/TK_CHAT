@@ -2,6 +2,7 @@
 import React, { useState, useEffect, ChangeEvent, KeyboardEvent } from 'react';
 import { initializeSession, sendMessage, getConfig, Message as ApiMessage } from '../../utils/api';
 import FeedbackForm from '../FeedbackForm';
+import CookieConsent from '../CookieConsent'; // Import the CookieConsent component
 import './ChatInterface.css';
 
 interface Message {
@@ -23,11 +24,6 @@ const ChatInterface: React.FC = () => {
     const consent = localStorage.getItem('cookieConsent');
     if (consent === 'true') {
       setConsentGiven(true);
-    } else {
-      // Display cookie banner or modal here
-      // For demonstration, we'll assume consent is given
-      localStorage.setItem('cookieConsent', 'true');
-      setConsentGiven(true);
     }
   }, []);
 
@@ -37,10 +33,14 @@ const ChatInterface: React.FC = () => {
 
     const storedSessionId = localStorage.getItem('sessionId');
     const sessionTimestamp = localStorage.getItem('sessionTimestamp');
+    const storedMessages = localStorage.getItem('messages');
     const now = new Date().getTime();
 
     if (storedSessionId && sessionTimestamp && now - parseInt(sessionTimestamp, 10) < 30 * 60 * 1000) {
       setSessionId(storedSessionId);
+      if (storedMessages) {
+        setMessages(JSON.parse(storedMessages));
+      }
     } else {
       initializeSession()
         .then((data) => {
@@ -116,28 +116,71 @@ const ChatInterface: React.FC = () => {
     }
   };
 
+  const handleAcceptCookies = () => {
+    localStorage.setItem('cookieConsent', 'true');
+    setConsentGiven(true);
+  };
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    if (consentGiven) {
+      localStorage.setItem('messages', JSON.stringify(messages));
+    }
+  }, [messages, consentGiven]);
+
+  // Handle "New Chat" functionality
+  const handleNewChat = () => {
+    // Clear messages and initialize a new session
+    setMessages([]);
+    setInput('');
+    localStorage.removeItem('sessionId');
+    localStorage.removeItem('sessionTimestamp');
+    localStorage.removeItem('messages');
+
+    initializeSession()
+      .then((data) => {
+        setSessionId(data.session_id);
+        const now = new Date().getTime();
+        localStorage.setItem('sessionId', data.session_id);
+        localStorage.setItem('sessionTimestamp', now.toString());
+      })
+      .catch((error) => {
+        console.error('Error initializing new session:', error);
+        setError('Failed to start a new chat. Please try again later.');
+      });
+  };
+
   return (
     <div className="chat-interface">
-      <div className="messages">
-        {messages.map((msg, index) => (
-          <div key={index} className={`message ${msg.role}`}>
-            <div className="message-content">{msg.content}</div>
+      {!consentGiven && <CookieConsent onAccept={handleAcceptCookies} />}
+
+      {consentGiven && (
+        <>
+          <div className="messages">
+            {messages.map((msg, index) => (
+              <div key={index} className={`message ${msg.role}`}>
+                <div className="message-content">{msg.content}</div>
+              </div>
+            ))}
+            {loading && <div className="loading">AI is typing...</div>}
           </div>
-        ))}
-        {loading && <div className="loading">AI is typing...</div>}
-      </div>
-      {error && <div className="error-message">{error}</div>}
-      <textarea
-        value={input}
-        onChange={handleInputChange}
-        onKeyPress={handleKeyPress}
-        disabled={loading}
-        placeholder="Type your message..."
-      />
-      <button onClick={handleSend} disabled={loading || !input.trim()}>
-        Send
-      </button>
-      {showFeedback && sessionId && <FeedbackForm sessionId={sessionId} />}
+          {error && <div className="error-message">{error}</div>}
+          <textarea
+            value={input}
+            onChange={handleInputChange}
+            onKeyPress={handleKeyPress}
+            disabled={loading}
+            placeholder="Type your message..."
+          />
+          <button onClick={handleSend} disabled={loading || !input.trim()}>
+            Send
+          </button>
+          <button onClick={handleNewChat} className="new-chat-button">
+            New Chat
+          </button>
+          {showFeedback && sessionId && <FeedbackForm sessionId={sessionId} />}
+        </>
+      )}
     </div>
   );
 };
