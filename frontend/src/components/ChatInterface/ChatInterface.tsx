@@ -5,6 +5,8 @@ import FeedbackForm from '../FeedbackForm';
 import CookieConsent from '../CookieConsent';
 import ChatIcon from '../ChatIcon';
 import './ChatInterface.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -205,8 +207,7 @@ const ChatInterface: React.FC = () => {
                   placeholder="Type your message..."
                 />
                 <button onClick={handleSend} disabled={loading || !input.trim()} className="send-button">
-                  {/* Replace text with an arrow icon */}
-                  <span>&uarr;</span>
+                  <FontAwesomeIcon icon={faPaperPlane} />
                 </button>
               </div>
               <div className="chat-footer">
