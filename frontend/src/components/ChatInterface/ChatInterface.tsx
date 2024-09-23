@@ -24,7 +24,7 @@ const ChatInterface: React.FC = () => {
   const [consentGiven, setConsentGiven] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
-  const [isFeedbackOpen, setIsFeedbackOpen] = useState<boolean>(false); 
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState<boolean>(false);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState<boolean>(false);
   const chatRef = useRef<HTMLDivElement>(null);
 
@@ -183,6 +183,12 @@ const ChatInterface: React.FC = () => {
       });
     } else {
       setIsChatOpen(true);
+      // Scroll to bottom when chat opens
+      setTimeout(() => {
+        if (chatRef.current) {
+          chatRef.current.scrollTop = chatRef.current.scrollHeight;
+        }
+      }, 100);
     }
   };
 
