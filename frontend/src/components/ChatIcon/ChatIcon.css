@@ -1,0 +1,25 @@
+/* src/components/ChatIcon/ChatIcon.css */
+.chat-icon {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: var(--primary-color);
+    color: #fff;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 1000;
+  }
+  
+  .chat-icon:hover {
+    background-color: #0056b3;
+  }
+  
+  .chat-icon-symbol {
+    font-size: 30px;
+  }
+  

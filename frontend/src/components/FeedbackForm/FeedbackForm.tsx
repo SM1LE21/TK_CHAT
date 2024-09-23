@@ -5,9 +5,10 @@ import './FeedbackForm.css';
 
 interface FeedbackFormProps {
   sessionId: string;
+  onClose: () => void;
 }
 
-const FeedbackForm: React.FC<FeedbackFormProps> = ({ sessionId }) => {
+const FeedbackForm: React.FC<FeedbackFormProps> = ({ sessionId, onClose }) => {
   const [feedback, setFeedback] = useState<string>('');
   const [submitted, setSubmitted] = useState<boolean>(false);
 
@@ -16,24 +17,36 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({ sessionId }) => {
     try {
       await submitFeedback(sessionId, feedback);
       setSubmitted(true);
+      
+      // Optionally close the dialog here or keep it open to show a thank you message
+      // onClose();
     } catch (error) {
       console.error('Error submitting feedback:', error);
     }
   };
 
-  if (submitted) {
-    return <div className="feedback-message">Thank you for your feedback!</div>;
-  }
-
   return (
     <form onSubmit={handleSubmit} className="feedback-form">
-      <textarea
-        value={feedback}
-        onChange={(e) => setFeedback(e.target.value)}
-        placeholder="Your feedback..."
-        required
-      />
-      <button type="submit">Submit Feedback</button>
+      <h2>Feedback</h2>
+      <p>We appreciate your feedback on the chat tool.</p>
+      {!submitted ? (
+        <>
+          <textarea
+            value={feedback}
+            onChange={(e) => setFeedback(e.target.value)}
+            placeholder="Your feedback..."
+            required
+          />
+          <div className="button-group">
+            <button type="submit">Submit Feedback</button>
+            <button type="button" onClick={onClose} className="cancel-button">
+              Cancel
+            </button>
+          </div>
+        </>
+      ) : (
+        <p>Thank you for your feedback!</p>
+      )}
     </form>
   );
 };

@@ -2,7 +2,8 @@
 import React, { useState, useEffect, ChangeEvent, KeyboardEvent } from 'react';
 import { initializeSession, sendMessage, getConfig, Message as ApiMessage } from '../../utils/api';
 import FeedbackForm from '../FeedbackForm';
-import CookieConsent from '../CookieConsent'; // Import the CookieConsent component
+import CookieConsent from '../CookieConsent';
+import ChatIcon from '../ChatIcon';
 import './ChatInterface.css';
 
 interface Message {
@@ -18,6 +19,9 @@ const ChatInterface: React.FC = () => {
   const [showFeedback, setShowFeedback] = useState<boolean>(false);
   const [consentGiven, setConsentGiven] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState<boolean>(false); 
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState<boolean>(false);
 
   // Check for cookie consent
   useEffect(() => {
@@ -54,6 +58,13 @@ const ChatInterface: React.FC = () => {
         });
     }
   }, [consentGiven]);
+
+  // Save messages to local storage
+  useEffect(() => {
+    if (consentGiven) {
+      localStorage.setItem('messages', JSON.stringify(messages));
+    }
+  }, [messages, consentGiven]);
 
   // Fetch configuration from backend
   useEffect(() => {
@@ -121,14 +132,6 @@ const ChatInterface: React.FC = () => {
     setConsentGiven(true);
   };
 
-  // Save messages to localStorage whenever they change
-  useEffect(() => {
-    if (consentGiven) {
-      localStorage.setItem('messages', JSON.stringify(messages));
-    }
-  }, [messages, consentGiven]);
-
-  // Handle "New Chat" functionality
   const handleNewChat = () => {
     // Clear messages and initialize a new session
     setMessages([]);
@@ -150,35 +153,90 @@ const ChatInterface: React.FC = () => {
       });
   };
 
+  const toggleChat = () => {
+    setIsChatOpen(!isChatOpen);
+  };
+
+  const openFeedback = () => {
+    setIsFeedbackOpen(true);
+  };
+
+  const closeFeedback = () => {
+    setIsFeedbackOpen(false);
+    setFeedbackSubmitted(true);
+  };
+
+  const handleFeedbackSubmitted = () => {
+    setFeedbackSubmitted(true);
+    closeFeedback();
+  };
+
   return (
-    <div className="chat-interface">
+    <div>
       {!consentGiven && <CookieConsent onAccept={handleAcceptCookies} />}
 
       {consentGiven && (
         <>
-          <div className="messages">
-            {messages.map((msg, index) => (
-              <div key={index} className={`message ${msg.role}`}>
-                <div className="message-content">{msg.content}</div>
+          {!isChatOpen && <ChatIcon onClick={toggleChat} />} {/* Display chat icon when chat is closed */}
+
+          {isChatOpen && (
+            <div className="chat-interface">
+              <div className="chat-header">
+                <span>Chat with AI</span>
+                <button className="close-button" onClick={toggleChat} aria-label="Close Chat">
+                  ✖
+                </button>
               </div>
-            ))}
-            {loading && <div className="loading">AI is typing...</div>}
-          </div>
-          {error && <div className="error-message">{error}</div>}
-          <textarea
-            value={input}
-            onChange={handleInputChange}
-            onKeyPress={handleKeyPress}
-            disabled={loading}
-            placeholder="Type your message..."
-          />
-          <button onClick={handleSend} disabled={loading || !input.trim()}>
-            Send
-          </button>
-          <button onClick={handleNewChat} className="new-chat-button">
-            New Chat
-          </button>
-          {showFeedback && sessionId && <FeedbackForm sessionId={sessionId} />}
+              <div className="messages">
+                {messages.map((msg, index) => (
+                  <div key={index} className={`message ${msg.role}`}>
+                    <div className="message-content">{msg.content}</div>
+                  </div>
+                ))}
+                {loading && <div className="loading">AI is typing...</div>}
+              </div>
+              {error && <div className="error-message">{error}</div>}
+              <div className="input-area">
+                <textarea
+                  value={input}
+                  onChange={handleInputChange}
+                  onKeyPress={handleKeyPress}
+                  disabled={loading}
+                  placeholder="Type your message..."
+                />
+                <button onClick={handleSend} disabled={loading || !input.trim()} className="send-button">
+                  {/* Replace text with an arrow icon */}
+                  <span>&uarr;</span>
+                </button>
+              </div>
+              <div className="chat-footer">
+                <button onClick={handleNewChat} className="new-chat-button">
+                  New Chat
+                </button>
+                <button
+                  onClick={!feedbackSubmitted ? openFeedback : undefined}
+                  className={`feedback-button ${feedbackSubmitted ? 'disabled' : ''}`}
+                  disabled={feedbackSubmitted}
+                >
+                  {feedbackSubmitted ? 'Thank You' : 'Give Feedback'}
+                </button>
+              </div>
+
+              {/* Feedback modal */}
+              {isFeedbackOpen && (
+                <div className="feedback-modal">
+                  <div className="feedback-modal-content">
+                    <button className="close-feedback" onClick={closeFeedback} aria-label="Close Feedback Form">
+                      ✖
+                    </button>
+                    {sessionId && (
+                      <FeedbackForm sessionId={sessionId} onClose={handleFeedbackSubmitted} />
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </>
       )}
     </div>
