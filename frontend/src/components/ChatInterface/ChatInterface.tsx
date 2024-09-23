@@ -1,10 +1,12 @@
 // src/components/ChatInterface/ChatInterface.tsx
-import React, { useState, useEffect, ChangeEvent, KeyboardEvent } from 'react';
+import React, { useState, useEffect, ChangeEvent, KeyboardEvent, useRef } from 'react';
 import { initializeSession, sendMessage, getConfig, Message as ApiMessage } from '../../utils/api';
 import FeedbackForm from '../FeedbackForm';
 import CookieConsent from '../CookieConsent';
 import ChatIcon from '../ChatIcon';
 import './ChatInterface.css';
+import { gsap } from 'gsap';
+import { useGSAP } from '@gsap/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 
@@ -24,6 +26,21 @@ const ChatInterface: React.FC = () => {
   const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState<boolean>(false); 
   const [feedbackSubmitted, setFeedbackSubmitted] = useState<boolean>(false);
+  const chatRef = useRef<HTMLDivElement>(null);
+
+  useGSAP(() => {
+    if (isChatOpen && chatRef.current) {
+      const screenHeight = window.innerHeight;
+      const isSmallScreen = window.innerWidth <= 600;
+      const targetHeight = isSmallScreen ? `${screenHeight}px` : '500px';
+  
+      gsap.fromTo(
+        chatRef.current,
+        { height: 0, opacity: 0 },
+        { duration: 0.5, height: targetHeight, opacity: 1 }
+      );
+    }
+  }, [isChatOpen]);
 
   // Check for cookie consent
   useEffect(() => {
@@ -156,7 +173,17 @@ const ChatInterface: React.FC = () => {
   };
 
   const toggleChat = () => {
-    setIsChatOpen(!isChatOpen);
+    if (isChatOpen) {
+      // Close chat with animation
+      gsap.to(chatRef.current, {
+        duration: 0.5,
+        height: 0,
+        opacity: 0,
+        onComplete: () => setIsChatOpen(false),
+      });
+    } else {
+      setIsChatOpen(true);
+    }
   };
 
   const openFeedback = () => {
@@ -165,7 +192,6 @@ const ChatInterface: React.FC = () => {
 
   const closeFeedback = () => {
     setIsFeedbackOpen(false);
-    setFeedbackSubmitted(true);
   };
 
   const handleFeedbackSubmitted = () => {
@@ -182,7 +208,7 @@ const ChatInterface: React.FC = () => {
           {!isChatOpen && <ChatIcon onClick={toggleChat} />} {/* Display chat icon when chat is closed */}
 
           {isChatOpen && (
-            <div className="chat-interface">
+            <div className="chat-interface" ref={chatRef}>
               <div className="chat-header">
                 <span>Chat with AI</span>
                 <button className="close-button" onClick={toggleChat} aria-label="Close Chat">
