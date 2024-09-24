@@ -54,10 +54,10 @@ This backend service provides API endpoints for the AI chat application using Fa
 
 ### **Environment Variables**
 Create a .env file in the backend/ directory with the following content:
-    ```bash
+   ```
     OPENAI_API_KEY=your-openai-api-key
     SECRET_KEY=your-secret-key
-    ```
+   ```
 
 ### **Running the Application**
 To run the FastAPI application locally:
