@@ -42,7 +42,7 @@ TK CHAT emphasizes performance, scalability, and user experience. The chat widge
 
 ## Project Description
 
-TK CHAT offers a seamless and interactive way for users to engage with AI on any website. The chat interface mimics popular messaging apps, with user messages aligned to the right and AI responses on the left. Session management is implemented using localStorage on the frontend and sessions on the backend, allowing conversations to persist across page refreshes.
+TK CHAT offers an interactive way for users to engage with AI on any website. The chat interface mimics popular messaging apps, with user messages aligned to the right and AI responses on the left. Session management is implemented using localStorage on the frontend and sessions on the backend, allowing conversations to persist across page refreshes.
 
 Security considerations include proper CORS handling, input validation, and error management. The application is designed with accessibility in mind, using ARIA labels and keyboard navigation support.
 
