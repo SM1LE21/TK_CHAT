@@ -1,6 +1,6 @@
 # **Backend Service**
 
-This backend service provides API endpoints for the AI chat application using FastAPI and OpenAI's GPT-3.5-turbo model. It includes session management, rate limiting, logging, and a feedback mechanism.
+This backend service provides API endpoints for the AI chat application using FastAPI and OpenAI's GPT-3.5-turbo model (example model). It includes session management, rate limiting, logging, and a feedback mechanism.
 
 ## **Table of Contents**
 
