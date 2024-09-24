@@ -1,4 +1,4 @@
-# **Frontend for AI Chat Application**
+# **Frontend**
 
 This is the React frontend for the AI chat application, providing a chat interface for users to interact with the AI assistant. The project uses TypeScript.
 
